@@ -21,14 +21,15 @@ import { useChat } from '../../context/ChatContext';
 import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, notifications, theme, setTheme } = useChat();
+  const { activeTab, setActiveTab, chats, notifications, theme, setTheme } = useChat();
   const { user, logout } = useAuth();
 
   const unreadNotifications = notifications.filter((n) => !n.read).length;
+  const totalUnreadChats = chats.reduce((acc, c) => acc + (c.unread || 0), 0);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'chats', label: 'Chats', icon: MessageSquare, badge: 2 },
+    { id: 'chats', label: 'Chats', icon: MessageSquare, badge: totalUnreadChats },
     { id: 'contacts', label: 'Contacts', icon: UserCheck },
     { id: 'groups', label: 'Groups', icon: Users },
     { id: 'calls', label: 'Calls', icon: Phone },

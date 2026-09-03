@@ -235,6 +235,69 @@ export const ChatProvider = ({ children }) => {
     );
   };
 
+  const togglePinChat = (chatId) => {
+    setChats((prev) =>
+      prev.map((c) => (c.id === chatId ? { ...c, pinned: !c.pinned } : c))
+    );
+  };
+
+  const selectChat = (chatId) => {
+    setActiveChatId(chatId);
+    setChats((prev) =>
+      prev.map((c) => (c.id === chatId ? { ...c, unread: 0 } : c))
+    );
+  };
+
+  const addNewContact = (name, username, email = '') => {
+    const cleanUsername = (username || name).toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    const newContactId = 'c_' + Date.now();
+    const newChatId = 'chat_' + newContactId;
+
+    const newContact = {
+      id: newContactId,
+      name: name || username,
+      username: cleanUsername,
+      avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80`,
+      status: 'online',
+      lastSeen: 'Online',
+      bio: 'Hey there! I am using ChatFlow 🚀',
+      favorite: false,
+      isFriend: true
+    };
+
+    const newChat = {
+      id: newChatId,
+      type: 'direct',
+      contactId: newContactId,
+      name: newContact.name,
+      avatar: newContact.avatar,
+      status: 'online',
+      unread: 0,
+      pinned: false,
+      archived: false,
+      lastMessage: 'Started conversation',
+      lastTime: 'Just now',
+      typing: false,
+      messages: [
+        {
+          id: 'm_init_' + Date.now(),
+          senderId: 'usr_me',
+          senderName: 'Anand Patel',
+          text: `👋 Started conversation with ${newContact.name}`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          status: 'seen',
+          reactions: []
+        }
+      ]
+    };
+
+    setContacts((prev) => [newContact, ...prev]);
+    setChats((prev) => [newChat, ...prev]);
+    setActiveChatId(newChatId);
+    setActiveTab('chats');
+    return newChat;
+  };
+
   const saveMessage = (message) => {
     const isSaved = savedMessages.some((s) => s.id === message.id);
     if (!isSaved) {
@@ -373,6 +436,9 @@ export const ChatProvider = ({ children }) => {
         addReaction,
         deleteMessage,
         pinMessage,
+        togglePinChat,
+        selectChat,
+        addNewContact,
         saveMessage,
         replyToMessage,
         setReplyToMessage,

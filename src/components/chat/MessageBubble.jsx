@@ -11,7 +11,13 @@ import {
   Smile,
   FileText,
   Play,
-  Volume2
+  Volume2,
+  Download,
+  ExternalLink,
+  User,
+  MapPin,
+  Film,
+  Music
 } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 
@@ -103,21 +109,93 @@ export const MessageBubble = ({ message, isMine }) => {
 
         {/* Media Attachments */}
         {message.attachments && message.attachments.length > 0 && (
-          <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {message.attachments.map((att, idx) => (
               <div key={idx} style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                {/* Image Attachment */}
                 {att.type === 'image' && (
                   <img
                     src={att.url}
-                    alt={att.title}
-                    style={{ maxWidth: '100%', maxHeight: '220px', objectFit: 'cover', borderRadius: '8px' }}
+                    alt={att.title || 'Attached Image'}
+                    style={{ maxWidth: '100%', maxHeight: '240px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer' }}
+                    onClick={() => window.open(att.url, '_blank')}
                   />
                 )}
-                {att.type === 'file' && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
-                    <FileText size={18} />
-                    <span style={{ fontSize: '0.8rem' }}>{att.title}</span>
+
+                {/* Video Attachment */}
+                {att.type === 'video' && (
+                  <video
+                    src={att.url}
+                    controls
+                    style={{ maxWidth: '100%', maxHeight: '240px', borderRadius: '8px', outline: 'none' }}
+                  />
+                )}
+
+                {/* Audio Attachment */}
+                {att.type === 'audio' && (
+                  <div style={{ padding: '6px', background: 'rgba(0,0,0,0.25)', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: '600', marginBottom: '4px', display: 'block' }}>🎵 {att.title}</span>
+                    <audio src={att.url} controls style={{ width: '100%', height: '36px' }} />
                   </div>
+                )}
+
+                {/* Document / PDF / File Attachment */}
+                {(att.type === 'file' || att.type === 'pdf') && (
+                  <a
+                    href={att.url || '#'}
+                    download={att.title}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '10px 12px',
+                      background: 'rgba(0,0,0,0.3)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      textDecoration: 'none',
+                      border: '1px solid rgba(255,255,255,0.15)'
+                    }}
+                  >
+                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: att.type === 'pdf' ? '#ef4444' : '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <FileText size={20} color="#ffffff" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: '0.84rem', fontWeight: '600', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {att.title}
+                      </span>
+                      {att.size && <span style={{ fontSize: '0.72rem', opacity: 0.7 }}>{att.size}</span>}
+                    </div>
+                    <Download size={16} style={{ flexShrink: 0, opacity: 0.8 }} />
+                  </a>
+                )}
+
+                {/* Contact Card Attachment */}
+                {att.type === 'contact' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'rgba(0,0,0,0.25)', borderRadius: '8px' }}>
+                    <img src={att.avatar} alt={att.name} style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }} />
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: '700', display: 'block' }}>{att.name}</span>
+                      <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>@{att.username}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Location Attachment */}
+                {att.type === 'location' && (
+                  <a
+                    href={att.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '8px', color: '#ffffff', textDecoration: 'none' }}
+                  >
+                    <MapPin size={22} color="#10b981" />
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.84rem', fontWeight: '700', display: 'block' }}>{att.title}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#6ee7b7' }}>Click to view on Google Maps</span>
+                    </div>
+                  </a>
                 )}
               </div>
             ))}

@@ -6,8 +6,10 @@ export const ContactList = () => {
   const {
     contacts,
     setContacts,
+    chats,
+    selectChat,
+    addNewContact,
     setActiveTab,
-    setActiveChatId,
     initiateCall,
     setSelectedUserProfile,
     blockedUsers,
@@ -148,7 +150,12 @@ export const ContactList = () => {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={() => {
-                      setActiveChatId('chat_c1');
+                      const existingChat = chats.find((c) => c.contactId === contact.id || c.id === 'chat_' + contact.id);
+                      if (existingChat) {
+                        selectChat(existingChat.id);
+                      } else {
+                        addNewContact(contact.name, contact.username);
+                      }
                       setActiveTab('chats');
                     }}
                     className="btn btn-primary"

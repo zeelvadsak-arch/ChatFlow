@@ -1,11 +1,35 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { currentUserMock } from '../data/mockData';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('chatflow_user');
+      return savedUser ? JSON.parse(savedUser) : currentUserMock;
+    } catch {
+      return currentUserMock;
+    }
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      const savedAuth = localStorage.getItem('chatflow_authenticated');
+      return savedAuth === null ? true : savedAuth === 'true';
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('chatflow_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('chatflow_user');
+    }
+    localStorage.setItem('chatflow_authenticated', isAuthenticated ? 'true' : 'false');
+  }, [user, isAuthenticated]);
 
   const login = async (email, password) => {
     try {
@@ -16,9 +40,9 @@ export const AuthProvider = ({ children }) => {
       });
       const data = await res.json();
 
+      let loggedInUser;
       if (res.ok && (data.accessToken || data._id)) {
-        setIsAuthenticated(true);
-        setUser({
+        loggedInUser = {
           id: data._id || 'usr_' + Date.now(),
           name: data.name || email.split('@')[0],
           username: data.username || email.split('@')[0],
@@ -26,14 +50,11 @@ export const AuthProvider = ({ children }) => {
           avatar: data.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
           role: data.role || 'user',
           isVerified: true
-        });
-        return { success: true };
+        };
       } else {
-        // Construct user profile from entered email/username
         const userDisplayName = email.split('@')[0].replace('.', ' ');
         const formattedName = userDisplayName.charAt(0).toUpperCase() + userDisplayName.slice(1);
-        setIsAuthenticated(true);
-        setUser({
+        loggedInUser = {
           id: 'usr_' + Date.now(),
           name: formattedName,
           username: email.split('@')[0].toLowerCase(),
@@ -41,15 +62,18 @@ export const AuthProvider = ({ children }) => {
           avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
           role: 'user',
           isVerified: true
-        });
-        return { success: true };
+        };
       }
+
+      setUser(loggedInUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('chatflow_user', JSON.stringify(loggedInUser));
+      localStorage.setItem('chatflow_authenticated', 'true');
+      return { success: true };
     } catch (err) {
-      // Construct user profile from entered credentials
       const userDisplayName = email.split('@')[0].replace('.', ' ');
       const formattedName = userDisplayName.charAt(0).toUpperCase() + userDisplayName.slice(1);
-      setIsAuthenticated(true);
-      setUser({
+      const loggedInUser = {
         id: 'usr_' + Date.now(),
         name: formattedName,
         username: email.split('@')[0].toLowerCase(),
@@ -57,7 +81,12 @@ export const AuthProvider = ({ children }) => {
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
         role: 'user',
         isVerified: true
-      });
+      };
+
+      setUser(loggedInUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('chatflow_user', JSON.stringify(loggedInUser));
+      localStorage.setItem('chatflow_authenticated', 'true');
       return { success: true };
     }
   };
@@ -97,7 +126,7 @@ export const AuthProvider = ({ children }) => {
 
   const forgotPassword = async (email) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/forgot-password', {
+      await fetch('http://localhost:5000/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -127,10 +156,16 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setIsAuthenticated(false);
     setUser(null);
+    localStorage.removeItem('chatflow_user');
+    localStorage.setItem('chatflow_authenticated', 'false');
   };
 
   const updateUserProfile = (updates) => {
-    setUser((prev) => ({ ...prev, ...updates }));
+    setUser((prev) => {
+      const updated = { ...prev, ...updates };
+      localStorage.setItem('chatflow_user', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return (
