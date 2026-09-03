@@ -93,5 +93,6 @@ export const LoginPage = ({ onNavigateToSignup, onNavigateToForgot }) => {
         </div>
       </div>
     </div>
+    
   );
 };
