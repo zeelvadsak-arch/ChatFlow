@@ -22,6 +22,7 @@ export const ChatWindow = () => {
     activeChat,
     contacts,
     groups,
+    togglePinChat,
     initiateCall,
     setSelectedUserProfile,
     setReportUserModal,
@@ -175,6 +176,16 @@ export const ChatWindow = () => {
               }}
               className="animate-pop"
             >
+              <button
+                onClick={() => {
+                  togglePinChat(activeChat.id);
+                  setMenuOpen(false);
+                }}
+                className="btn btn-secondary"
+                style={{ justifyContent: 'flex-start', fontSize: '0.82rem', padding: '6px 10px', color: activeChat.pinned ? 'var(--primary)' : 'inherit' }}
+              >
+                <Pin size={15} /> {activeChat.pinned ? 'Unpin Conversation' : 'Pin Conversation'}
+              </button>
               <button
                 onClick={() => {
                   setSelectedUserProfile(targetContact);
